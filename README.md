@@ -39,10 +39,12 @@ pnpm test:install          # download Chromium for Playwright
 **Run:**
 
 ```bash
-pnpm serve                  # http://localhost:5173
-pnpm test                   # run the e2e suite (50 tests, 10 describe blocks)
+pnpm serve                  # http://localhost:5174
+pnpm test                   # run the e2e suite (52 tests, 10 describe blocks)
 pnpm test:headed            # watch the browser while tests run
 pnpm test:ui                # Playwright UI mode
+pnpm deploy                 # pnpx wrangler deploy (Cloudflare Workers)
+pnpm preview                # local Cloudflare runtime (pnpx wrangler dev)
 ```
 
 The dev server (`serve.mjs`) is a ~50-line zero-dependency Node script. No third-party HTTP-server package; no transitive npm surface beyond Node itself.
@@ -53,21 +55,27 @@ The dev server (`serve.mjs`) is a ~50-line zero-dependency Node script. No third
 
 ```
 moonar/
-├── index.html              the app (single file, no build step)
-├── manifest.webmanifest    PWA manifest
-├── sw.js                   service worker (cache-first)
-├── favicon.svg
-├── icons/                  PWA app icons (5 PNGs)
-├── scripts/build-icons.py  regenerate icons from the palette
-├── serve.mjs               zero-deps dev server
+├── public/                    deploy root (Cloudflare Workers assets)
+│   ├── index.html             the app (single file, no build step)
+│   ├── manifest.webmanifest   PWA manifest
+│   ├── sw.js                  service worker (cache-first)
+│   ├── favicon.svg
+│   └── icons/                 PWA app icons (5 PNGs)
+├── scripts/build-icons.py     regenerate icons from the palette
+├── serve.mjs                  zero-deps dev server (serves ./public)
+├── wrangler.jsonc             Cloudflare Workers config
 ├── playwright.config.ts
-├── tests/moonar.spec.ts    50 e2e tests
+├── tests/moonar.spec.ts       52 e2e tests
 ├── package.json
 ├── pnpm-lock.yaml
-├── .npmrc                  supply-chain hardening
+├── .npmrc                     supply-chain hardening
 ├── .gitignore
+├── CHANGELOG.md
+├── LICENSE
 └── README.md
 ```
+
+Only the contents of `public/` ship to production. Tests, scripts, configs, and tooling stay at the repo root.
 
 ## How it works
 
@@ -83,7 +91,7 @@ moonar/
 
 ## Tech stack & supply chain
 
-Single HTML file, no build step. The only npm dependency is `@playwright/test` (devDependency, signed by Microsoft).
+Single HTML file, no build step. The npm runtime surface is empty; the only devDependencies are `@playwright/test` (signed by Microsoft) and `@types/node` (types-only).
 
 Given the recent npm registry attacks, the install posture is intentionally cautious:
 
@@ -102,9 +110,11 @@ Given the recent npm registry attacks, the install posture is intentionally caut
 
 ## Deployment
 
-Static hosting only — no server runtime required. Suitable hosts include Cloudflare Pages, Netlify, Vercel, GitHub Pages, or any plain `nginx` / `caddy` setup serving the project root.
+The app deploys to **Cloudflare Workers** as static assets. `wrangler.jsonc` at the repo root points `assets.directory` at `./public`, and `pnpm deploy` runs `pnpx wrangler deploy` — Wrangler is fetched on demand, not pinned in `package.json`, to keep the npm surface minimal. Use `pnpm preview` to exercise the Cloudflare runtime locally.
 
-The service worker requires HTTPS in production. All the named hosts above provide that by default.
+Anything outside `public/` (tests, scripts, configs, `node_modules`, docs) stays out of the deployed bundle. Workers static assets enforces a 25 MiB per-file limit; do not put large binaries inside `public/`.
+
+The service worker requires HTTPS in production, which Workers provides by default. The codebase is plain static files, so any other static host (e.g. `nginx`, `caddy`) can serve `public/` if you choose to migrate.
 
 ## Eclipse data maintenance
 
