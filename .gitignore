@@ -1,0 +1,43 @@
+node_modules/
+.pnpm-store/
+
+# Playwright artifacts
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
+
+# Build artifacts
+coverage/
+*.tsbuildinfo
+
+# Release packages — release zips should be published, not committed
+*.zip
+
+# Environment / secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Python (scripts/build-icons.py byproducts)
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# Claude Code — keep CLAUDE.md committed, ignore local settings/state
+.claude/
+CLAUDE.local.md
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*

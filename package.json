@@ -1,0 +1,34 @@
+{
+  "name": "moonar",
+  "version": "0.7.2",
+  "private": true,
+  "description": "Moon phases made simple. Installable Progressive Web App.",
+  "keywords": ["moon", "lunar", "phase", "eclipse", "supermoon", "pwa", "astronomy"],
+  "homepage": "https://moonar.thetestnestmx.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheTestNestMx/moonar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TheTestNestMx/moonar/issues"
+  },
+  "author": "Moises Gonzalez",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "serve": "node serve.mjs",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:install": "playwright install --with-deps chromium"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "devDependencies": {
+    "@playwright/test": "1.49.0",
+    "@types/node": "25.7.0"
+  }
+}

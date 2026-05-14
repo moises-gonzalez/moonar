@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>moonar</title>
+<meta name="theme-color" content="#F8F9FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#212529" media="(prefers-color-scheme: dark)">
+
+<!-- PWA -->
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="moonar">
+<meta name="mobile-web-app-capable" content="yes">
+
+<style>
+  :root {
+    /* Palette */
+    --c-black:   #212529;
+    --c-gunmetal:#343A40;
+    --c-iron:    #495057;
+    --c-mid:     #6C757D;
+    --c-gray:    #ADB5BD;
+    --c-silver:  #CED4DA;
+    --c-pearl:   #DEE2E6;
+    --c-platinum:#E9ECEF;
+    --c-snow:    #F8F9FA;
+
+    /* Light tokens */
+    --bg:            var(--c-snow);
+    --surface:       #FFFFFF;
+    --border:        var(--c-pearl);
+    --border-strong: var(--c-black);
+    --text:          var(--c-black);
+    --text-muted:    var(--c-mid);
+    --text-subtle:   var(--c-gray);
+    --track:         var(--c-silver);
+  }
+
+  [data-theme="dark"] {
+    --bg:            var(--c-black);
+    --surface:       var(--c-gunmetal);
+    --border:        var(--c-iron);
+    --border-strong: var(--c-silver);
+    --text:          var(--c-silver);
+    --text-muted:    var(--c-gray);
+    --text-subtle:   var(--c-mid);
+    --track:         var(--c-iron);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    transition: background 200ms ease, color 200ms ease;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 360px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: background 200ms ease, border-color 200ms ease;
+  }
+
+  /* ============================================================
+     Header — pomoDO parity
+     ============================================================ */
+  .header {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .header h1 {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    flex: 1;
+  }
+
+  .icon-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text);
+    transition: background 0.15s;
+    padding: 0;
+    font-family: inherit;
+  }
+  .icon-btn:hover { background: var(--track); }
+  .icon-btn svg { width: 14px; height: 14px; }
+
+  /* ============================================================
+     Settings / About drawers — pomoDO parity
+     ============================================================ */
+  .settings {
+    padding: 12px 18px;
+    background: var(--bg);
+    border-bottom: 0.5px solid var(--border);
+  }
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+  }
+  .setting-row span { font-size: 13px; color: var(--text); }
+
+  .theme-btns { display: flex; gap: 4px; }
+  .theme-btn {
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .theme-btn.active {
+    border-color: var(--border-strong);
+    color: var(--text);
+  }
+
+  .install-btn {
+    margin-top: 10px;
+    padding: 5px 10px;
+    font-size: 10.5px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: transparent;
+    border: 0.5px solid var(--border-strong);
+    border-radius: 4px;
+    color: var(--text);
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s, color 0.15s;
+  }
+  .install-btn:hover {
+    background: var(--text);
+    color: var(--bg);
+  }
+
+  .hidden { display: none !important; }
+
+  /* ============================================================
+     Main view
+     ============================================================ */
+  .view { padding: 28px 18px 18px; }
+
+  .moon-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 22px;
+  }
+  .moon {
+    width: 180px;
+    height: 180px;
+    display: block;
+  }
+  .moon .disk   { fill: var(--text);   transition: fill 200ms ease; }
+  .moon .shadow { fill: var(--track);  transition: fill 200ms ease; }
+  #shadowGroup  { transform-origin: 90px 90px; transition: transform 400ms ease; }
+  .moon .edge   { fill: none; stroke: var(--border); stroke-width: 0.5;
+                  transition: stroke 200ms ease; }
+
+  .phase-info {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .phase-name {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .illumination {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.4px;
+  }
+
+  /* ============================================================
+     Stats
+     ============================================================ */
+  .stats {
+    border-top: 0.5px solid var(--border);
+    padding-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+  }
+  .stat-row + .stat-row {
+    border-top: 0.5px dashed var(--border);
+  }
+  .stat-label {
+    font-size: 10.5px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .stat-value {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: 0.3px;
+  }
+
+  /* ============================================================
+     14-day phase strip
+     ============================================================ */
+  .day-strip {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 0.5px solid var(--border);
+  }
+  .day-strip-label {
+    font-size: 10.5px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .day-strip-row {
+    display: flex;
+    gap: 3px;
+    align-items: flex-end;
+  }
+  .day-cell {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .mini-moon {
+    width: 100%;
+    max-width: 20px;
+    aspect-ratio: 1 / 1;
+    display: block;
+  }
+  .mini-moon .disk   { fill: var(--text); }
+  .mini-moon .shadow { fill: var(--track); }
+  .day-num {
+    font-size: 9px;
+    color: var(--text-muted);
+    letter-spacing: 0.3px;
+    line-height: 1;
+  }
+  .day-cell.today .day-num {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .day-cell.today .day-num::after {
+    content: '';
+    display: block;
+    width: 8px;
+    height: 1px;
+    background: var(--text);
+    margin: 2px auto 0;
+  }
+
+  /* ============================================================
+     Upcoming events (eclipses + supermoons)
+     ============================================================ */
+  .events {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 0.5px solid var(--border);
+  }
+  .events-toggle {
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 0 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--text-muted);
+    transition: color 150ms ease;
+  }
+  .events-toggle:hover { color: var(--text); }
+  .events-toggle:focus-visible {
+    outline: 0.5px solid var(--border-strong);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+  .events-label {
+    font-size: 10.5px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: inherit;
+  }
+  .events-chevron {
+    width: 10px;
+    height: 10px;
+    color: inherit;
+    transition: transform 200ms ease;
+  }
+  .events-toggle[aria-expanded="false"] .events-chevron {
+    transform: rotate(-90deg);
+  }
+  .event-row {
+    padding: 8px 0;
+  }
+  .event-row + .event-row {
+    border-top: 0.5px dashed var(--border);
+  }
+  .event-name {
+    font-size: 11px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .event-detail {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    letter-spacing: 0.3px;
+  }
+  .events-empty {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 8px 0;
+  }
+
+  /* ============================================================
+     Footer note
+     ============================================================ */
+  .foot {
+    border-top: 0.5px solid var(--border);
+    padding: 10px 18px;
+    font-size: 10px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+    text-align: center;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <h1>moonar</h1>
+    <button class="icon-btn" id="aboutBtn" title="About" aria-label="About">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="8" cy="8" r="6.5"/>
+        <path d="M6.2 6a1.8 1.8 0 0 1 3.6 0c0 1.2-1.8 1.5-1.8 2.6"/>
+        <circle cx="8" cy="11.2" r="0.4" fill="currentColor"/>
+      </svg>
+    </button>
+    <button class="icon-btn" id="settingsBtn" title="Settings" aria-label="Settings">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" aria-hidden="true">
+        <circle cx="8" cy="8" r="2.5"/>
+        <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.5 1.5M11.5 11.5L13 13M3 13l1.5-1.5M11.5 4.5L13 3"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="settings hidden" id="settings">
+    <div class="setting-row">
+      <span>Location</span>
+      <div class="theme-btns" role="group" aria-label="Location">
+        <button class="theme-btn" data-loc="off">Off</button>
+        <button class="theme-btn" data-loc="on">On</button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <span>Theme</span>
+      <div class="theme-btns" role="group" aria-label="Theme">
+        <button class="theme-btn" data-theme="auto">Auto</button>
+        <button class="theme-btn" data-theme="light">Light</button>
+        <button class="theme-btn" data-theme="dark">Dark</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings hidden" id="about">
+    <p style="font-size: 13px; color: var(--text); margin-bottom: 8px;">moonar</p>
+    <p style="font-size: 11px; color: var(--text-muted); line-height: 1.5;">
+      Moon phases made simple<br>
+      Version 0.7.2  ·  <a href="https://www.buymeacoffee.com/thetestnestmx" style="color: inherit; text-decoration: underline;" target="_blank" rel="noopener noreferrer">Buy Me A Coffee</a>
+    </p>
+    <p style="font-size: 10px; color: var(--text-muted); line-height: 1.5; margin-top: 8px; letter-spacing: 0.2px;">
+      Privacy: location stays in your browser. Nothing is sent anywhere.
+    </p>
+    <button class="install-btn hidden" id="installBtn" type="button">Install app</button>
+  </div>
+
+  <div class="view">
+    <div class="moon-wrap">
+      <svg class="moon" viewBox="0 0 180 180" aria-hidden="true">
+        <circle class="disk" cx="90" cy="90" r="80"/>
+        <g id="shadowGroup">
+          <path class="shadow" id="shadowPath" d=""/>
+        </g>
+        <circle class="edge" cx="90" cy="90" r="80"/>
+      </svg>
+    </div>
+
+    <div class="phase-info">
+      <div class="phase-name" id="phaseName" aria-live="polite">—</div>
+      <div class="illumination" id="illumination">—</div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-row">
+        <span class="stat-label">Moon age</span>
+        <span class="stat-value" id="moonAge">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Next full</span>
+        <span class="stat-value" id="nextFull">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Next new</span>
+        <span class="stat-value" id="nextNew">—</span>
+      </div>
+      <div class="stat-row hidden" id="rowMoonrise">
+        <span class="stat-label">Next moonrise</span>
+        <span class="stat-value" id="moonrise">—</span>
+      </div>
+      <div class="stat-row hidden" id="rowMoonset">
+        <span class="stat-label">Next moonset</span>
+        <span class="stat-value" id="moonset">—</span>
+      </div>
+    </div>
+
+    <div class="day-strip" id="dayStripWrap">
+      <div class="day-strip-label">14-day phase</div>
+      <div class="day-strip-row" id="dayStrip" aria-hidden="true"></div>
+    </div>
+
+    <div class="events" id="eventsWrap">
+      <button class="events-toggle" id="eventsToggle" type="button" aria-expanded="false" aria-controls="eventsList">
+        <span class="events-label">Upcoming events</span>
+        <svg class="events-chevron" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div id="eventsList" class="hidden"></div>
+    </div>
+  </div>
+
+  <div class="foot" id="footNote">Hemisphere undetected</div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ============================================================
+     SunCalc — Moon illumination
+     Source: https://github.com/mourner/suncalc  (BSD-2-Clause)
+     (c) Vladimir Agafonkin.  Trimmed to moon-illumination only.
+     ============================================================ */
+  const PI    = Math.PI;
+  const sin   = Math.sin,  cos   = Math.cos,  tan   = Math.tan;
+  const asin  = Math.asin, atan2 = Math.atan2, acos = Math.acos;
+
+  const rad   = PI / 180;
+  const e     = rad * 23.4397;          // obliquity of Earth
+  const dayMs = 1000 * 60 * 60 * 24;
+  const J1970 = 2440588;
+  const J2000 = 2451545;
+
+  const toJulian = (date) => date.valueOf() / dayMs - 0.5 + J1970;
+  const toDays   = (date) => toJulian(date) - J2000;
+
+  const rightAscension = (l, b) =>
+    atan2(sin(l) * cos(e) - tan(b) * sin(e), cos(l));
+  const declination = (l, b) =>
+    asin(sin(b) * cos(e) + cos(b) * sin(e) * sin(l));
+
+  const solarMeanAnomaly = (d) => rad * (357.5291 + 0.98560028 * d);
+  const eclipticLongitude = (M) => {
+    const C = rad * (1.9148 * sin(M) + 0.02 * sin(2 * M) + 0.0003 * sin(3 * M));
+    const P = rad * 102.9372;
+    return M + C + P + PI;
+  };
+
+  function sunCoords(d) {
+    const M = solarMeanAnomaly(d);
+    const L = eclipticLongitude(M);
+    return { dec: declination(L, 0), ra: rightAscension(L, 0) };
+  }
+
+  function moonCoords(d) {
+    const L  = rad * (218.316 + 13.176396 * d);  // ecliptic longitude
+    const M  = rad * (134.963 + 13.064993 * d);  // mean anomaly
+    const F  = rad * (93.272  + 13.229350 * d);  // mean distance argument
+    const l  = L + rad * 6.289 * sin(M);
+    const b  = rad * 5.128 * sin(F);
+    const dt = 385001 - 20905 * cos(M);
+    return { ra: rightAscension(l, b), dec: declination(l, b), dist: dt };
+  }
+
+  function getMoonIllumination(date) {
+    const d     = toDays(date || new Date());
+    const s     = sunCoords(d);
+    const m     = moonCoords(d);
+    const sdist = 149598000;            // earth-sun distance, km
+    const phi   = acos(sin(s.dec) * sin(m.dec) +
+                       cos(s.dec) * cos(m.dec) * cos(s.ra - m.ra));
+    const inc   = atan2(sdist * sin(phi), m.dist - sdist * cos(phi));
+    const angle = atan2(
+      cos(s.dec) * sin(s.ra - m.ra),
+      sin(s.dec) * cos(m.dec) - cos(s.dec) * sin(m.dec) * cos(s.ra - m.ra)
+    );
+    return {
+      fraction: (1 + cos(inc)) / 2,                          // 0..1 illuminated
+      phase:    0.5 + 0.5 * inc * (angle < 0 ? -1 : 1) / PI, // 0..1 cycle position
+      angle:    angle
+    };
+  }
+
+  // --- Moon position & rise/set times (SunCalc, continued) ----------
+  function siderealTime(d, lw) { return rad * (280.16 + 360.9856235 * d) - lw; }
+  function altitude(H, phi, dec) {
+    return asin(sin(phi) * sin(dec) + cos(phi) * cos(dec) * cos(H));
+  }
+  function astroRefraction(h) {
+    if (h < 0) h = 0;  // clamp; negative refraction is physically meaningless
+    return 0.0002967 / Math.tan(h + 0.00312536 / (h + 0.08901179));
+  }
+  function hoursLater(date, h) {
+    return new Date(date.valueOf() + h * dayMs / 24);
+  }
+
+  function getMoonPosition(date, lat, lng) {
+    const lw  = rad * -lng;
+    const phi = rad * lat;
+    const d   = toDays(date);
+    const c   = moonCoords(d);
+    const H   = siderealTime(d, lw) - c.ra;
+    let   h   = altitude(H, phi, c.dec);
+    h += astroRefraction(h);
+    return { altitude: h, distance: c.dist };
+  }
+
+  function getMoonTimes(date, lat, lng) {
+    const t = new Date(date);
+    t.setHours(0, 0, 0, 0);
+
+    const hc = 0.133 * rad;
+    let h0 = getMoonPosition(t, lat, lng).altitude - hc;
+    let h1, h2, rise, set, a, b, xe, ye, d, roots, x1, x2, dx;
+
+    for (let i = 1; i <= 24; i += 2) {
+      h1 = getMoonPosition(hoursLater(t, i),     lat, lng).altitude - hc;
+      h2 = getMoonPosition(hoursLater(t, i + 1), lat, lng).altitude - hc;
+
+      a = (h0 + h2) / 2 - h1;
+      b = (h2 - h0) / 2;
+      xe = -b / (2 * a);
+      ye = (a * xe + b) * xe + h1;
+      d = b * b - 4 * a * h1;
+      roots = 0;
+
+      if (d >= 0) {
+        dx = Math.sqrt(d) / (Math.abs(a) * 2);
+        x1 = xe - dx;
+        x2 = xe + dx;
+        if (Math.abs(x1) <= 1) roots++;
+        if (Math.abs(x2) <= 1) roots++;
+        if (x1 < -1) x1 = x2;
+      }
+
+      if (roots === 1) {
+        if (h0 < 0) rise = i + x1;
+        else        set  = i + x1;
+      } else if (roots === 2) {
+        rise = i + (ye < 0 ? x2 : x1);
+        set  = i + (ye < 0 ? x1 : x2);
+      }
+
+      if (rise && set) break;
+      h0 = h2;
+    }
+
+    const result = {};
+    if (rise) result.rise = hoursLater(t, rise);
+    if (set)  result.set  = hoursLater(t, set);
+    if (!rise && !set) result[ye > 0 ? 'alwaysUp' : 'alwaysDown'] = true;
+    return result;
+  }
+
+  function nextMoonEvents(now, lat, lng) {
+    const today    = getMoonTimes(now, lat, lng);
+    const tomorrow = getMoonTimes(new Date(now.getTime() + dayMs), lat, lng);
+    const pickFuture = (a, b) => (a && a > now) ? a : b;
+    return {
+      rise: pickFuture(today.rise, tomorrow.rise),
+      set:  pickFuture(today.set,  tomorrow.set),
+      alwaysUp:   today.alwaysUp   || false,
+      alwaysDown: today.alwaysDown || false,
+    };
+  }
+
+  /* ============================================================
+     Phase utilities
+     ============================================================ */
+  const SYNODIC = 29.530588853;  // mean synodic month, days
+
+  function phaseName(p) {
+    // 24-hour window (±12h) for the four principal phases
+    if (p < 0.0169 || p >= 0.9831) return 'New Moon';
+    if (p < 0.2331) return 'Waxing Crescent';
+    if (p < 0.2669) return 'First Quarter';
+    if (p < 0.4831) return 'Waxing Gibbous';
+    if (p < 0.5169) return 'Full Moon';
+    if (p < 0.7331) return 'Waning Gibbous';
+    if (p < 0.7669) return 'Last Quarter';
+    return 'Waning Crescent';
+  }
+
+  /**
+   * Days from `fromDate` until the moon reaches `targetPhase` (0..1).
+   * Uses a linear estimate refined by 4 iterations against SunCalc.
+   * Accuracy is well within a minute for v0.1 needs.
+   */
+  function daysUntilPhase(targetPhase, fromDate) {
+    fromDate = fromDate || new Date();
+    const current = getMoonIllumination(fromDate).phase;
+    let delta = targetPhase - current;
+    if (delta <= 0) delta += 1;
+    let estimate = delta * SYNODIC;
+
+    for (let i = 0; i < 4; i++) {
+      const testDate  = new Date(fromDate.getTime() + estimate * dayMs);
+      const testPhase = getMoonIllumination(testDate).phase;
+      let diff = targetPhase - testPhase;
+      if (diff > 0.5)   diff -= 1;
+      if (diff <= -0.5) diff += 1;
+      estimate += diff * SYNODIC;
+    }
+    return estimate;
+  }
+
+  function formatDuration(days) {
+    const totalMinutes = Math.max(0, Math.round(days * 1440));
+    const d = Math.floor(totalMinutes / 1440);
+    const h = Math.floor((totalMinutes % 1440) / 60);
+    const m = totalMinutes % 60;
+    const dUnit = (n) => n === 1 ? ' day'    : ' days';
+    const hUnit = (n) => n === 1 ? ' hour'   : ' hours';
+    const mUnit = (n) => n === 1 ? ' minute' : ' minutes';
+    const join  = ', ';
+    if (d >= 1) return d + dUnit(d) + join + h + hUnit(h);
+    if (h >= 1) return h + hUnit(h) + join + m + mUnit(m);
+    return m + mUnit(m);
+  }
+
+  /* ============================================================
+     Eclipses + supermoons
+     ----------------------------------------------------------------
+     ECLIPSE_ALMANAC is a hardcoded forward-looking table sourced from
+     NASA's GSFC Eclipse Catalog. Dates are UTC. The table should be
+     cross-referenced against the published catalog before each
+     yearly release; old entries are auto-pruned by the filter below.
+
+       https://eclipse.gsfc.nasa.gov/eclipse.html
+
+     `hemispheres` is an APPROXIMATION of where each eclipse is broadly
+     visible — ['N'], ['S'], or ['N','S']. Lunar eclipses are visible
+     to roughly half the planet (the night side) and usually span both
+     hemispheres. Solar eclipse paths are narrower and often tied to
+     one hemisphere. Inside the tagged hemisphere, visibility still
+     depends on local geography; this is a coarse filter, not a
+     guarantee. When in doubt, tag broadly to avoid hiding events.
+
+     Supermoons are computed live: any full moon whose geocentric
+     distance is under SUPERMOON_KM at instant of fullness.
+     ============================================================ */
+  // Lunar eclipses only. Solar eclipses are intentionally excluded —
+  // they are geographically narrow and less relevant as a "moon event".
+  const ECLIPSE_ALMANAC = [
+    // 2026
+    { type: 'lunar', variant: 'partial',   date: '2026-08-28', hemispheres: ['N', 'S'] },
+    // 2027
+    { type: 'lunar', variant: 'penumbral', date: '2027-02-20', hemispheres: ['N', 'S'] },
+    { type: 'lunar', variant: 'penumbral', date: '2027-07-18', hemispheres: ['N', 'S'] },
+    { type: 'lunar', variant: 'penumbral', date: '2027-08-17', hemispheres: ['N', 'S'] },
+    // 2028
+    { type: 'lunar', variant: 'penumbral', date: '2028-01-26', hemispheres: ['N', 'S'] },
+    { type: 'lunar', variant: 'partial',   date: '2028-07-06', hemispheres: ['N', 'S'] },
+    { type: 'lunar', variant: 'total',     date: '2028-12-31', hemispheres: ['N', 'S'] },
+    // 2029
+    { type: 'lunar', variant: 'total',     date: '2029-06-26', hemispheres: ['N', 'S'] },
+    { type: 'lunar', variant: 'total',     date: '2029-12-20', hemispheres: ['N', 'S'] },
+    // 2030
+    { type: 'lunar', variant: 'partial',   date: '2030-06-15', hemispheres: ['N', 'S'] },
+    { type: 'lunar', variant: 'penumbral', date: '2030-12-09', hemispheres: ['N', 'S'] },
+  ];
+
+  // NOTE on threshold: SunCalc's distance formula has a compressed range
+  // (~364,100 → 405,900 km) versus the true ±50,000 km perigee/apogee
+  // swing. 367,000 km is calibrated empirically against that range to
+  // surface roughly 2–3 supermoons per year, matching public-press usage.
+  const SUPERMOON_KM = 367000;
+  const EVENT_LIMIT  = 3;
+  const EVENT_HORIZON_DAYS = 730; // 2-year window for supermoon search
+
+  function findSupermoons(now, horizonDays) {
+    const horizonEnd = new Date(now.getTime() + horizonDays * dayMs);
+    const results = [];
+    let cursor = now;
+    // 24 full moons covers a 2-year horizon with margin
+    for (let i = 0; i < 24; i++) {
+      const days = daysUntilPhase(0.5, cursor);
+      const date = new Date(cursor.getTime() + days * dayMs);
+      if (date > horizonEnd) break;
+      const d    = toDays(date);
+      const dist = moonCoords(d).dist;
+      if (dist < SUPERMOON_KM) {
+        results.push({
+          type: 'supermoon',
+          variant: 'full',
+          date,
+          distanceKm: Math.round(dist),
+          hemispheres: ['N', 'S'],   // supermoons are visible globally
+        });
+      }
+      cursor = new Date(date.getTime() + dayMs);
+    }
+    return results;
+  }
+
+  // Parse an almanac 'YYYY-MM-DD' string as **local time noon** rather than
+  // UTC midnight. Reason: UTC midnight rendered in any westward timezone
+  // becomes the previous calendar day (e.g. Monterrey at UTC-6 would render
+  // 2026-08-28T00:00Z as 'August 27, 2026'). Noon local time is far enough
+  // from any timezone boundary that the displayed date is stable worldwide.
+  function parseAlmanacDate(ymd) {
+    const [y, m, d] = ymd.split('-').map(Number);
+    return new Date(y, m - 1, d, 12, 0, 0, 0);
+  }
+
+  function getUpcomingEvents(now, limit, hemi) {
+    const supermoons = findSupermoons(now, EVENT_HORIZON_DAYS);
+    const eclipses = ECLIPSE_ALMANAC
+      .map(e => ({ ...e, date: parseAlmanacDate(e.date) }))
+      .filter(e => e.date > now && e.type === 'lunar');  // lunar only; defensive guard
+    let merged = [...supermoons, ...eclipses].sort((a, b) => a.date - b.date);
+    // hemi is 'N', 'S', or null (null = no filtering)
+    if (hemi) merged = merged.filter(e => e.hemispheres.includes(hemi));
+    return merged.slice(0, limit || EVENT_LIMIT);
+  }
+
+  function eventTitle(event) {
+    if (event.type === 'supermoon') return 'Supermoon';
+    const v = event.variant.charAt(0).toUpperCase() + event.variant.slice(1);
+    return v + ' ' + event.type + ' eclipse';
+  }
+
+  function formatEventDate(date) {
+    return date.toLocaleDateString([], {
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+    });
+  }
+
+  function formatEventCountdown(date, now) {
+    const days = Math.max(0, Math.floor((date - now) / dayMs));
+    if (days === 0) return 'today';
+    if (days === 1) return 'in 1 day';
+    return 'in ' + days + ' days';
+  }
+
+  /* ============================================================
+     SVG moon-shadow renderer
+     Two ellipse arcs: outer disk-semicircle on the shadow side, then
+     the terminator (a half-ellipse of semi-minor axis r|cos θ|) back.
+     ============================================================ */
+  function moonShadowPath(phase, cx, cy, r) {
+    // Full moon: empty shadow
+    if (Math.abs(phase - 0.5) < 0.001) return '';
+
+    const theta = phase * 2 * PI;
+    const rx    = Math.abs(cos(theta)) * r;
+
+    // Outer semicircle: waxing → left side, waning → right side
+    const semicircleSweep = phase < 0.5 ? 0 : 1;
+
+    // Terminator bulge direction (going bottom → top)
+    //   waxing crescent  (0.00 – 0.25): bulges RIGHT → sweep 0
+    //   waxing gibbous   (0.25 – 0.50): bulges LEFT  → sweep 1
+    //   waning gibbous   (0.50 – 0.75): bulges RIGHT → sweep 0
+    //   waning crescent  (0.75 – 1.00): bulges LEFT  → sweep 1
+    let terminatorSweep;
+    if      (phase < 0.25) terminatorSweep = 0;
+    else if (phase < 0.5)  terminatorSweep = 1;
+    else if (phase < 0.75) terminatorSweep = 0;
+    else                   terminatorSweep = 1;
+
+    return [
+      'M', cx, cy - r,
+      'A', r, r, 0, 0, semicircleSweep, cx, cy + r,
+      'A', rx.toFixed(3), r, 0, 0, terminatorSweep, cx, cy - r,
+      'Z'
+    ].join(' ');
+  }
+
+  /* ============================================================
+     Theme — mirrors pomoDO's architecture
+     ============================================================ */
+  const STORAGE = 'moonar_theme';
+  const VALID   = ['auto', 'light', 'dark'];
+
+  let theme = 'auto';
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORAGE));
+    if (VALID.includes(stored)) theme = stored;
+  } catch {}
+
+  function applyTheme() {
+    let resolved = theme;
+    if (resolved === 'auto') {
+      resolved = matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', resolved);
+    document.querySelectorAll('.theme-btn[data-theme]').forEach(b => {
+      const active = b.dataset.theme === theme;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-pressed', active);
+    });
+  }
+
+  document.querySelectorAll('.theme-btn[data-theme]').forEach(b => {
+    b.addEventListener('click', () => {
+      theme = b.dataset.theme;
+      try { localStorage.setItem(STORAGE, JSON.stringify(theme)); } catch {}
+      applyTheme();
+    });
+  });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+  /* ============================================================
+     Hemisphere — derived from location, no longer a manual setting
+     ----------------------------------------------------------------
+     getCurrentHemisphere() returns:
+       'N' when coords are available and lat >= 0
+       'S' when coords are available and lat <  0
+       null when location is off / coords absent
+     A null result means: don't flip the moon, don't filter events.
+     ============================================================ */
+
+  // One-shot migration cleanup from v0.6.x preferences
+  try { localStorage.removeItem('moonar_hemisphere'); } catch {}
+  try { localStorage.removeItem('moonar_timeformat'); } catch {}
+
+  function getCurrentHemisphere() {
+    if (locationState !== 'on' || !coords) return null;
+    return coords.lat >= 0 ? 'N' : 'S';
+  }
+
+  function applyHemisphere() {
+    const hemi  = getCurrentHemisphere();
+    const group = document.getElementById('shadowGroup');
+    if (group) {
+      group.setAttribute('transform', hemi === 'S' ? 'rotate(180 90 90)' : '');
+    }
+    const foot = document.getElementById('footNote');
+    if (foot) {
+      foot.textContent = hemi === 'S' ? 'S. hemisphere view'
+                       : hemi === 'N' ? 'N. hemisphere view'
+                       : 'Hemisphere undetected';
+    }
+  }
+
+  /* ============================================================
+     Location — opt-in geolocation for moonrise/moonset
+     ============================================================ */
+  const LOC_STATE_KEY  = 'moonar_location_state';   // 'off' | 'on'
+  const LOC_COORDS_KEY = 'moonar_location_coords';  // { lat, lng, ts }
+  const LOC_OK         = ['off', 'on'];
+
+  let locationState = 'off';
+  let coords = null;
+
+  try {
+    const s = JSON.parse(localStorage.getItem(LOC_STATE_KEY));
+    if (LOC_OK.includes(s)) locationState = s;
+  } catch {}
+  try {
+    const c = JSON.parse(localStorage.getItem(LOC_COORDS_KEY));
+    if (c && typeof c.lat === 'number' && typeof c.lng === 'number') coords = c;
+  } catch {}
+
+  // If state says "on" but we don't have coords (or vice versa), reset to off
+  if (locationState === 'on' && !coords) locationState = 'off';
+
+  function applyLocationButtons() {
+    document.querySelectorAll('.theme-btn[data-loc]').forEach(b => {
+      const active = b.dataset.loc === locationState;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-pressed', active);
+    });
+  }
+
+  function setLocationOff(persist) {
+    locationState = 'off';
+    if (persist) {
+      try { localStorage.setItem(LOC_STATE_KEY, JSON.stringify('off')); } catch {}
+    }
+    applyLocationButtons();
+    applyHemisphere();
+    render();
+  }
+
+  function requestLocation() {
+    if (!('geolocation' in navigator)) {
+      setLocationOff(true);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        coords = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          ts:  Date.now(),
+        };
+        locationState = 'on';
+        try {
+          localStorage.setItem(LOC_STATE_KEY,  JSON.stringify('on'));
+          localStorage.setItem(LOC_COORDS_KEY, JSON.stringify(coords));
+        } catch {}
+        applyLocationButtons();
+        applyHemisphere();
+        render();
+      },
+      () => setLocationOff(true),
+      { timeout: 10000, maximumAge: 3600000 }
+    );
+  }
+
+  document.querySelectorAll('.theme-btn[data-loc]').forEach(b => {
+    b.addEventListener('click', () => {
+      const target = b.dataset.loc;
+      if (target === 'on') {
+        if (coords) {
+          // already authorized previously — re-enable instantly
+          locationState = 'on';
+          try { localStorage.setItem(LOC_STATE_KEY, JSON.stringify('on')); } catch {}
+          applyLocationButtons();
+          applyHemisphere();
+          render();
+        } else {
+          requestLocation();
+        }
+      } else {
+        setLocationOff(true);
+      }
+    });
+  });
+
+  /* ============================================================
+     Upcoming events — collapsible toggle (v0.6.1)
+     ============================================================ */
+  const EVENTS_OPEN_KEY = 'moonar_events_open';
+  let eventsOpen = false;
+  try {
+    const v = JSON.parse(localStorage.getItem(EVENTS_OPEN_KEY));
+    if (typeof v === 'boolean') eventsOpen = v;
+  } catch {}
+
+  function applyEventsOpen() {
+    const toggle = document.getElementById('eventsToggle');
+    const list   = document.getElementById('eventsList');
+    if (!toggle || !list) return;
+    toggle.setAttribute('aria-expanded', String(eventsOpen));
+    list.classList.toggle('hidden', !eventsOpen);
+  }
+
+  document.getElementById('eventsToggle').addEventListener('click', () => {
+    eventsOpen = !eventsOpen;
+    try { localStorage.setItem(EVENTS_OPEN_KEY, JSON.stringify(eventsOpen)); } catch {}
+    applyEventsOpen();
+  });
+
+  /* ============================================================
+     14-day phase strip — build once, re-render on phase/hemisphere
+     ============================================================ */
+  const STRIP_DAYS = 14;
+  const STRIP_OFFSET_START = -1;  // yesterday at index 0
+
+  function buildDayStrip() {
+    const container = document.getElementById('dayStrip');
+    if (!container) return;
+    container.innerHTML = '';
+    for (let i = 0; i < STRIP_DAYS; i++) {
+      const offset = STRIP_OFFSET_START + i;
+      const cell = document.createElement('div');
+      cell.className = 'day-cell' + (offset === 0 ? ' today' : '');
+      cell.dataset.offset = String(offset);
+      cell.innerHTML =
+        '<svg class="mini-moon" viewBox="0 0 24 24" aria-hidden="true">' +
+          '<circle class="disk" cx="12" cy="12" r="10"/>' +
+          '<g class="mini-shadow-group">' +
+            '<path class="shadow" d=""/>' +
+          '</g>' +
+        '</svg>' +
+        '<div class="day-num"></div>';
+      container.appendChild(cell);
+    }
+  }
+
+  function renderDayStrip() {
+    const cells = document.querySelectorAll('#dayStrip .day-cell');
+    const now   = new Date();
+    const transform = getCurrentHemisphere() === 'S' ? 'rotate(180 12 12)' : '';
+    cells.forEach((cell) => {
+      const offset = parseInt(cell.dataset.offset, 10);
+      const date   = new Date(now.getTime() + offset * dayMs);
+      const phase  = getMoonIllumination(date).phase;
+      cell.querySelector('.shadow').setAttribute('d', moonShadowPath(phase, 12, 12, 10));
+      cell.querySelector('.mini-shadow-group').setAttribute('transform', transform);
+      cell.querySelector('.day-num').textContent = String(date.getDate());
+    });
+  }
+
+  /* ============================================================
+     Render
+     ============================================================ */
+  function render() {
+    const now      = new Date();
+    const info     = getMoonIllumination(now);
+    const phase    = info.phase;
+    const fraction = info.fraction;
+
+    // Moon
+    document.getElementById('shadowPath')
+      .setAttribute('d', moonShadowPath(phase, 90, 90, 80));
+
+    // Phase text
+    document.getElementById('phaseName').textContent   = phaseName(phase);
+    document.getElementById('illumination').textContent =
+      Math.round(fraction * 100) + '% illuminated';
+
+    // Core stats
+    document.getElementById('moonAge').textContent =
+      formatDuration(phase * SYNODIC);
+    document.getElementById('nextFull').textContent =
+      formatDuration(daysUntilPhase(0.5, now));
+    document.getElementById('nextNew').textContent =
+      formatDuration(daysUntilPhase(0,   now));
+
+    // Moonrise / moonset
+    const rowRise = document.getElementById('rowMoonrise');
+    const rowSet  = document.getElementById('rowMoonset');
+    if (locationState === 'on' && coords) {
+      rowRise.classList.remove('hidden');
+      rowSet.classList.remove('hidden');
+      const ev = nextMoonEvents(now, coords.lat, coords.lng);
+      document.getElementById('moonrise').textContent =
+        ev.alwaysUp   ? 'always up'   :
+        ev.rise       ? formatClock(ev.rise) : 'none today';
+      document.getElementById('moonset').textContent =
+        ev.alwaysDown ? 'always down' :
+        ev.set        ? formatClock(ev.set)  : 'none today';
+    } else {
+      rowRise.classList.add('hidden');
+      rowSet.classList.add('hidden');
+    }
+
+    // 14-day strip
+    renderDayStrip();
+
+    // Upcoming events
+    renderEvents(now);
+  }
+
+  function renderEvents(now) {
+    const list = document.getElementById('eventsList');
+    const wrap = document.getElementById('eventsWrap');
+    if (!list || !wrap) return;
+    const hemi = getCurrentHemisphere();   // 'N', 'S', or null
+    const events = getUpcomingEvents(now, EVENT_LIMIT, hemi);
+    if (events.length === 0) {
+      list.innerHTML = '<div class="events-empty">None in the catalog.</div>';
+      return;
+    }
+    list.innerHTML = events.map(e => {
+      const detail = formatEventDate(e.date) + '  ·  ' + formatEventCountdown(e.date, now);
+      // Build node-by-node so user-derived content can't inject markup
+      const row  = document.createElement('div');
+      row.className = 'event-row';
+      const name = document.createElement('div');
+      name.className = 'event-name';
+      name.textContent = eventTitle(e);
+      const det  = document.createElement('div');
+      det.className = 'event-detail';
+      det.textContent = detail;
+      row.appendChild(name);
+      row.appendChild(det);
+      return row.outerHTML;
+    }).join('');
+  }
+
+  function formatClock(date) {
+    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  }
+
+  buildDayStrip();
+  applyTheme();
+  applyHemisphere();
+  applyLocationButtons();
+  applyEventsOpen();
+  render();
+
+  // Keep current if the tab is left open
+  setInterval(render, 5 * 60 * 1000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) render();
+  });
+
+  /* ============================================================
+     Settings / About drawer toggles — pomoDO pattern
+     ============================================================ */
+  document.getElementById('settingsBtn').onclick = () => {
+    const settings = document.getElementById('settings');
+    document.getElementById('about').classList.add('hidden');
+    settings.classList.toggle('hidden');
+  };
+
+  document.getElementById('aboutBtn').onclick = () => {
+    const about = document.getElementById('about');
+    document.getElementById('settings').classList.add('hidden');
+    about.classList.toggle('hidden');
+  };
+
+  /* ============================================================
+     PWA: install prompt + service worker
+     ============================================================ */
+  const installBtn = document.getElementById('installBtn');
+  let deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn && installBtn.classList.remove('hidden');
+  });
+
+  installBtn && installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    installBtn.classList.add('hidden');
+    try {
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+    } catch {}
+    deferredPrompt = null;
+  });
+
+  window.addEventListener('appinstalled', () => {
+    installBtn && installBtn.classList.add('hidden');
+    deferredPrompt = null;
+  });
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch((err) => {
+        console.warn('SW registration failed:', err);
+      });
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
