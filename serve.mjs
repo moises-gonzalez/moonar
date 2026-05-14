@@ -1,5 +1,6 @@
 // Minimal zero-deps static file server for moonar.
-// Listens on PORT (default 5173). Serves the project root.
+// Listens on PORT (default 5174). Serves ./public (the same directory
+// Cloudflare Workers static assets deploys).
 // No third-party packages — uses only `node:*` builtins.
 
 import { createServer } from 'node:http';
@@ -7,8 +8,8 @@ import { readFile }     from 'node:fs/promises';
 import { extname, join, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ROOT = resolve(fileURLToPath(import.meta.url), '..');
-const PORT = parseInt(process.env.PORT ?? '5173', 10);
+const ROOT = resolve(fileURLToPath(import.meta.url), '..', 'public');
+const PORT = parseInt(process.env.PORT ?? '5174', 10);
 
 const MIME = {
   '.html':         'text/html; charset=utf-8',

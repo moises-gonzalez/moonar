@@ -7,11 +7,13 @@
 ```bash
 pnpm install --frozen-lockfile     # canonical install; any drift from lockfile fails fast
 pnpm test:install                  # one-time: download Chromium for Playwright
-pnpm serve                         # dev server at http://localhost:5173
+pnpm serve                         # dev server at http://localhost:5174 (serves ./public)
 pnpm test                          # full Playwright e2e suite
 pnpm test -- -g "Full Moon"        # run a single test by title pattern
 pnpm test:headed                   # watch the browser
 pnpm test:ui                       # Playwright UI mode
+pnpm deploy                        # deploy to Cloudflare Workers (pnpx wrangler deploy)
+pnpm preview                       # local Cloudflare runtime (pnpx wrangler dev)
 python3 scripts/build-icons.py     # regenerate PWA icons (requires Pillow)
 ```
 
@@ -19,15 +21,17 @@ Tests run on Chromium only (desktop + Pixel 5 viewports). Do not add Firefox/Web
 
 ## Architecture
 
-**Single-file app, no build step.** `index.html` (~1200 lines) contains the entire app: markup, styles, an inlined trimmed copy of SunCalc (BSD-2-Clause — preserve the attribution comment), the `ECLIPSE_ALMANAC` hardcoded NASA GSFC table, and all rendering logic. Edits to behavior go here, not to separate JS/CSS files.
+**Single-file app, no build step.** `public/index.html` (~1200 lines) contains the entire app: markup, styles, an inlined trimmed copy of SunCalc (BSD-2-Clause — preserve the attribution comment), the `ECLIPSE_ALMANAC` hardcoded NASA GSFC table, and all rendering logic. Edits to behavior go here, not to separate JS/CSS files.
 
-**Zero-dep runtime + dev server.** The only npm dependency is `@playwright/test` (dev). `serve.mjs` is a hand-written 59-line static file server using only `node:*` builtins. Do not introduce `express`, `vite`, `workbox`, or similar — the supply-chain posture is intentional (see README "Tech stack & supply chain"). Exact-pinned versions only; no `^` / `~`.
+**`public/` is the deploy root.** Everything in `public/` (`index.html`, `sw.js`, `manifest.webmanifest`, `favicon.svg`, `icons/`) is what Cloudflare Workers serves as static assets. Nothing outside `public/` ships. Add new shippable assets inside `public/`; keep tooling, tests, scripts, and config at the repo root.
 
-**Service worker (`sw.js`)** is cache-first with a versioned cache (`moonar-v<x.y.z>`). When releasing a change to the shell, bump `VERSION` in `sw.js` so old caches get evicted on activate. SW only registers on `localhost` or HTTPS — `file://` won't work for offline-behavior testing.
+**Zero-dep runtime + dev server.** The only npm dependency is `@playwright/test` (dev). `serve.mjs` is a hand-written static file server using only `node:*` builtins that serves `./public`. Do not introduce `express`, `vite`, `workbox`, or similar — the supply-chain posture is intentional (see README "Tech stack & supply chain"). Wrangler is invoked on-demand via `pnpx wrangler …`, not pinned. Exact-pinned versions only; no `^` / `~`.
 
-**Phase math and supermoon detection** live inline in `index.html`. Supermoons are detected by sampling lunar distance at each forward full moon within 2 years; the threshold (367,000 km) is calibrated to SunCalc's *simplified* distance formula — it is not the true perigee threshold. If you swap the distance model, recalibrate.
+**Service worker (`public/sw.js`)** is cache-first with a versioned cache (`moonar-v<x.y.z>`). When releasing a change to the shell, bump `VERSION` in `public/sw.js` so old caches get evicted on activate. SW only registers on `localhost` or HTTPS — `file://` won't work for offline-behavior testing.
 
-**Eclipse data** is a static array `ECLIPSE_ALMANAC` in `index.html`, sourced from <https://eclipse.gsfc.nasa.gov/eclipse.html>. Solar eclipses are intentionally excluded. Entries are hemisphere-tagged but the tag is a coarse filter — see the README caveat under "A caveat on hemisphere filtering".
+**Phase math and supermoon detection** live inline in `public/index.html`. Supermoons are detected by sampling lunar distance at each forward full moon within 2 years; the threshold (367,000 km) is calibrated to SunCalc's *simplified* distance formula — it is not the true perigee threshold. If you swap the distance model, recalibrate.
+
+**Eclipse data** is a static array `ECLIPSE_ALMANAC` in `public/index.html`, sourced from <https://eclipse.gsfc.nasa.gov/eclipse.html>. Solar eclipses are intentionally excluded. Entries are hemisphere-tagged but the tag is a coarse filter — see the README caveat under "A caveat on hemisphere filtering".
 
 ## Testing patterns
 
@@ -38,9 +42,13 @@ Tests run on Chromium only (desktop + Pixel 5 viewports). Do not add Firefox/Web
 
 Astronomy assertions reference specific UTC instants (e.g. "Jan 21 2023 → New Moon"). When adding tests, pick dates with unambiguous phase membership to avoid flake at phase boundaries.
 
+## Deployment
+
+The app deploys to Cloudflare Workers as static assets. `wrangler.jsonc` at the repo root points `assets.directory` at `./public`. The Cloudflare build command is `pnpx wrangler deploy` — Wrangler is **not** pinned in `package.json`; it is fetched on demand. Anything that should not ship (tests, scripts, node_modules, configs, docs) must stay outside `public/`. Workers static assets has a 25 MiB per-file limit; do not put large binaries inside `public/`.
+
 ## Releases
 
-Bumping the version is a 3-file edit: `package.json` (`version`), `sw.js` (`VERSION`), and the "Version X.Y.Z" string in the About drawer inside `index.html`. Missing any of these means users see a stale shell or a stale version string.
+Bumping the version is a 3-file edit: `package.json` (`version`), `public/sw.js` (`VERSION`), and the "Version X.Y.Z" string in the About drawer inside `public/index.html`. Missing any of these means users see a stale shell or a stale version string.
 
 ## Git commits
 

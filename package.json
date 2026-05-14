@@ -20,7 +20,9 @@
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
-    "test:install": "playwright install --with-deps chromium"
+    "test:install": "playwright install --with-deps chromium",
+    "deploy": "pnpx wrangler deploy",
+    "preview": "pnpx wrangler dev"
   },
   "engines": {
     "node": ">=20",

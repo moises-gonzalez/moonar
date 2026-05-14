@@ -11,7 +11,7 @@ export default defineConfig({
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
 
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://localhost:5174',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -23,9 +23,9 @@ export default defineConfig({
 
   webServer: {
     command: 'pnpm run serve',
-    url: 'http://localhost:5173',
+    url: 'http://localhost:5174',
     reuseExistingServer: !process.env.CI,
-    timeout: 10_000,
+    timeout: 30_000,
     stdout: 'ignore',
     stderr: 'pipe',
   },

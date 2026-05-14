@@ -37,6 +37,13 @@ Thumbs.db
 .claude/
 CLAUDE.local.md
 
+# Cloudflare / Wrangler — local state and env, never committed
+.wrangler/
+.dev.vars
+.dev.vars.*
+wrangler.toml.bak
+wrangler.jsonc.bak
+
 # Logs
 *.log
 npm-debug.log*
